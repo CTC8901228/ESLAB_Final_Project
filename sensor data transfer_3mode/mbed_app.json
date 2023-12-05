@@ -1,0 +1,37 @@
+{
+    "config": {
+        "hostname": {
+            "help": "The demo will try to connect to this web address on port 80 (or port 443 when using tls).",
+            "value": "\"192.168.221.246\""
+        },
+        "use-tls-socket": {
+            "value": false
+        }
+    },
+    "target_overrides": {
+        "*": {
+            "nsapi.default-wifi-security": "WPA_WPA2",
+            "nsapi.default-wifi-ssid": "\"dedede\"",
+            "nsapi.default-wifi-password": "\"724724724\"",
+            "platform.stdio-baud-rate": 9600,
+            "mbed-trace.enable": false,
+            "mbed-trace.max-level": "TRACE_LEVEL_DEBUG",
+            "rtos.main-thread-stack-size": 8192,
+            "target.printf_lib": "std"
+
+        },
+        "DISCO_F413ZH": {
+            "target.components_add": ["ism43362"],
+            "target.macros_add" : ["MBEDTLS_SHA1_C"]
+        },
+        "DISCO_L475VG_IOT01A": {
+            "target.components_add": ["ism43362"],
+            "ism43362.provide-default": true,
+            "target.network-default-interface-type": "WIFI",
+            "target.macros_add" : ["MBEDTLS_SHA1_C"]
+        },
+        "K64F": {
+            "target.macros_add" : ["MBEDTLS_SHA1_C"]
+        }
+    }
+}
