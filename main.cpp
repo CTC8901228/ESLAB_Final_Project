@@ -3,7 +3,7 @@
 #include "mbed-trace/mbed_trace.h"
 #include <cstdint>
 // #include 
-
+ // 點點版本的stm32
 #if MBED_CONF_APP_USE_TLS_SOCKET
 #include "root_ca_cert.h"
 // #include 
@@ -177,6 +177,7 @@ public:
         t.start();
         while (1) {
             led_sem.acquire();
+            
             while (1) {
                 if (true) { 
                     int16_t pACCDataXYZ[3] = {0};
@@ -190,12 +191,15 @@ public:
                         BSP_ACCELERO_AccGetXYZ(pACCDataXYZ);
                         BSP_MAGNETO_GetXYZ(pMAGDataXYZ);
                         BSP_GYRO_GetXYZ(pGyroDataXYZ);
-                        char data[250];
-                        if(button_switch>2) {
-                            button_switch=0;
-                            t.reset();  
-                        }
-                        sprintf(data,"%d %d %d %d %d %d %d %f %f %f %llu", button_switch,
+                        char data[1024];
+                        // if (button_switch==0){
+                        //     button_switch=1;
+                        // }
+                        // if(button_switch>1) {
+                        //     button_switch=0;
+                        //     t.reset();  
+                        // }
+                        sprintf(data,"%d %d %d %d %d %d %d %f %f %f %llu!", button_switch,
                                                                     pACCDataXYZ[0],pACCDataXYZ[1],pACCDataXYZ[2],
                                                                     pMAGDataXYZ[0],pMAGDataXYZ[1],pMAGDataXYZ[2],
                                                                     pGyroDataXYZ[0],pGyroDataXYZ[1],pGyroDataXYZ[2] , duration_cast<milliseconds>(t.elapsed_time()).count());
@@ -207,7 +211,7 @@ public:
                             // printf("sent %d bytes\r\n", bytes_sent);
                             bytes_to_send -= bytes_sent;
                         }
-                        // ThisThread::sleep_for(10ms);
+                        ThisThread::sleep_for(10ms);
                     }
 
                 }

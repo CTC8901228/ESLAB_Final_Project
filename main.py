@@ -6,6 +6,7 @@ import time
 import random
 import matplotlib.pyplot as plt
 from icp import icp
+import webbrowser
 from scipy.signal import butter, lfilter, freqz,filtfilt
 # def( np array,'a',資料夾)  save a.npy at folder
 # def( 'a',資料夾)  return a.npy at folder
@@ -52,6 +53,9 @@ def click():
 
 def mousemove(newx,newy):
     pyautogui.moveTo(newx, newy,_pause=False)
+def inputkey(key):
+    pyautogui.typewrite(key)
+
         
 def main():
     click_thread = threading.Thread(target=click)
@@ -106,7 +110,6 @@ def main():
                                 t=float_arr[-1]/1000
                                 mag=[float_arr[4]*mag_scale,float_arr[5]*mag_scale,float_arr[6]*mag_scale]
                                 # print(float_arr)
-                                print(mode)
                             except:
                                 print('data split prob, data=',data)
                                 continue
@@ -213,12 +216,12 @@ def main():
                                         stable=0
                                         x=np.array([[0,0,0],[0,0,0]])
                                     
-                                    if abs(x[-1,1])<20:
+                                    if abs(x[-1,1])<15:
                                         movex =0
                                     else:
                                         movex= (abs(x[-1,1])-10)/5
                                     
-                                    if abs(x[-1,0])<20:
+                                    if abs(x[-1,0])<15:
                                         movey =0
                                     else:
                                         movey= (abs(x[-1,0])-10)/5
@@ -267,45 +270,193 @@ def main():
                                     acclist=[]
                                     gyrlist=[]
                                     continue
-                                if mode_iter==30:
+                                if mode_iter==50:
                                     accoffset_mode=np.mean(np.array(acclist),axis=0)
                                     gyroffset_mode=np.mean(np.array(gyrlist),axis=0)
+                                    print('you can slide now.')
+                                    # pyautogui.alert("You can slide now.")
+                                    # time.sleep(0.5)
+
+                                    # pyaut
+                                    # ogui.press('enter')
+
                                     
-                                    print('u can draw!')
-                                if mode_iter<30:
+                                if mode_iter<50:
                                     gyr=[a - b for a, b in zip(gyr, offset_gyr)]
                                     # gyr_arr=np.array([[gyr[0]],[gyr[1]],[gyr[2]]])
                                     gyr_d=cali_gyro (gyr)/1000
                                     acc=[a - b for a, b in zip(acc, offset_acc)]
                                     # acc_arr=np.array([[acc[0]],[acc[1]],[acc[2]]])
-                                    acc_d=cali_acc (acc)
-                                    
+                                    acc_d=cali_acc (np.array([ [acc[0]] , [acc[1]] , [acc[2]]]))
+                                    # print(acc_d)
                                     
                                     maglist.append(mag)
-                                    time_list.append(t)
+                                    time_list.append(t/1000)
                                     fil_gyr=[gyr_d[0],gyr_d[1],gyr_d[2]]
                                     # print([acc_d[0,0],acc_d[0,1],acc_d[0,2]])
+                                    # print(np.array([acc_d[0],acc_d[1],acc_d[2]]) )
                                     # print(acc)
-                                    acclist.append([acc_d[0,0],acc_d[0,1],acc_d[0,2]]  )
-                                    gyrlist.append([gyr_d[0,0],gyr_d[0,1],gyr_d[0,2]])
+                                    acclist.append([acc_d[0][0],acc_d[1][0],acc_d[2][0]] )
+                                    gyrlist.append([gyr_d[0][0],gyr_d[0][1],gyr_d[0][2]])
                                 else:
                                                                        
                                     acc=[a - b for a, b in zip(acc, offset_acc)]
-                                    acc_d=cali_acc (acc)
+                                    # acc_d=cali_acc (acc)
+                                    acc_d=cali_acc (np.array([ [acc[0]] , [acc[1]] , [acc[2]]]))
+                                    
                                     acc_d=[a - b for a, b in zip(acc_d, accoffset_mode)]
                                     
                                     time_list.append(t)
-                                    print(acc_d)
-                                    acclist.append([acc_d[0][0],acc_d[0][1],acc_d[0][2]]  )
+                                    # acclist.append([acc_d[0],acc_d[1],acc_d[2]]  )
+                                    acclist.append([acc_d[0][0],acc_d[1][0],acc_d[2][0]] )
+                                    
                                     v=draw_and_append(v,np.array(acclist),np.array(time_list),False)
                                     
                                     
                             elif mode ==3:
-                                print(v)
+                                if prevmode!=3:
+                                    prevmode=3
+                                    
+                                    mode_iter=0
+                                    id=iden(v,np.array(acclist),accoffset_mode)
+                                    id_action(id)
+                                acclist=[]
+                                gyrlist=[]
+                                timelist=[]
+                                
                                 # print('undefine mode:',mode)
                                 pass ##velocity iden
                             else:
                                 print('undefined mode')
+def id_action(id):
+    if id==5:  
+        typekey='g'
+    elif id==4:
+        typekey='o'
+    elif id==3:
+        typekey='l'
+    elif id ==2:
+        typekey='e'
+    elif id==1:
+        pyautogui.press("enter")
+
+        typekey=''
+        
+    else:
+        url = 'https://www.youtube.com/watch?v=leet8OGHwzk&ab_channel=%E5%8A%89%E9%8E%AC'
+        webbrowser.open(url)
+    try:
+        inputkey(typekey)
+    except:
+        print('原來你也玩原神啊')
+    
+    
+def iden(v,a,offset):
+    ## a can find direction
+    ## offset can find orientation
+    print(offset)
+    # print(a)
+
+    thr=30000
+    if np.max(offset)<thr: 
+        ax=2
+        orientation=0
+        direction=1
+    elif offset[2]>150000 and np.max(offset[:2])<thr : 
+        ax=2
+        orientation=1 ##Z巢下
+        direction=0
+    elif offset[2]>=thr:
+        if np.max(np.abs(offset))<thr:
+            print(f"value ex with offset={offset}")
+            orientation=0
+        ax=np.argmax(np.abs(offset[:2]))
+        direction=offset[ax]/abs(offset[ax])
+        if direction!=1: direction=0
+        orientation=ax*2+direction+2
+    else :
+        print(f"value ex with offset={offset}")
+        ax=2
+        orientation=0
+    
+    # print(direction)
+    minv=np.argmin(v,axis=0)
+    maxv=np.argmax(v,axis=0)
+    length=v.shape[0]
+    middlev=np.mean(v[int(length/2-3):int(length/2+4)],axis=0)
+    firstv=np.mean(v[int(length/3-3):int(length/3+4)],axis=0)
+    var=np.var(a,axis=0)
+    var_a=np.divide(v,var)
+    
+    
+    
+    # var[ax]/=4
+    
+    maxvar=np.argmax(var)
+    # maxvar=np.argmax(np.max(var,axis=0)-np.min(var_a,axis=0))
+    direction=(middlev[maxvar]-firstv[maxvar])/abs((middlev[maxvar]-firstv[maxvar]))
+    # direction=(minv[maxvar]-maxv[maxvar])/abs((minv[maxvar]-maxv[maxvar]))
+    
+    
+    
+    if direction!=1: direction=0
+    
+    slide=maxvar*2+direction
+    
+    
+    
+    
+    
+    
+    
+    id=slide+orientation*6
+    
+    
+   
+    print(maxvar)  #滑的座標軸
+    """
+    Z巢上時:
+    左右是X(0)   前後是Y(1)
+    """
+    print(direction)
+    print(slide)
+    print(orientation)
+    print(id)
+    print(var)
+    """
+    往上滑 Z上  id=4
+    往下滑 Z上  id=5
+    往前滑 Z上  id=2
+    往後滑 Z上  id=3
+    
+    往左滑 Z上  id=1
+    往右滑 Z上  id=0
+     直拿(Z前) orien=4
+    往下滑 id=27
+    往上滑 id=26
+    往前滑 id=29
+    往後滑 id=28
+    往左滑 id=25
+    往右滑 id=24
+    
+    
+    
+    
+    """
+    ## 往上滑 Z上  id=5
+    ##都很小: Z巢上
+    ##thr設20000
+    ##只有Z很正: Z巢下
+    
+    ##如果Z<-20000->其他軸
+    return id
+    
+    
+    
+    
+    
+    
+    
 class POS_ID:
     def __init__(self):
           self.pos_list=[]
